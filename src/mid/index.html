@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>resonance</title>
+  </head>
+  <body>
+    <main class="poster">
+      <!-- 도형 레이어: 전부 같은 칸에 겹침(Pile). CSS 변수 하나로 크기·위치가 결정됨 -->
+      <div class="stage" aria-hidden="true">
+        <div class="ring field field-a"><div class="sweep"></div></div>
+        <div class="ring field field-b"><div class="sweep"></div></div>
+        <div class="ring arc a1"><div class="sweep"></div></div>
+        <div class="ring arc a2"><div class="sweep"></div></div>
+        <div class="ring arc a3"><div class="sweep"></div></div>
+        <div class="ring arc a4"><div class="sweep"></div></div>
+        <div class="ring arc a5"><div class="sweep"></div></div>
+        <div class="ring hair h1"><div class="sweep"></div></div>
+        <div class="ring hair h2"><div class="sweep"></div></div>
+      </div>
+      <div class="dot" aria-hidden="true"></div>
+
+      <!-- 모바일에서만 보이는 상단 메타 바 -->
+      <div class="metabar">
+        <span>no. 07</span>
+        <span>hanbit hall — 2026.12.12</span>
+      </div>
+
+      <header class="slogan">
+        <strong>하나의 소리가 원이 되어<br />번져 나가는 밤</strong>
+        <em>sound travels in circles.</em>
+      </header>
+
+      <h1 class="title" aria-label="resonance">
+        <span aria-hidden="true">reso</span
+        ><span aria-hidden="true">nance</span>
+      </h1>
+
+      <section class="prose" aria-label="공연 소개">
+        <p>
+          소리는 한 점에서 시작해 사방으로 퍼져 나갑니다. 연주자의 활이 현에
+          닿는 순간 생긴 진동은 공기를 타고 동심원을 그리며 객석의 가장 먼
+          곳까지 도달합니다. 《resonance》는 이 보이지 않는 파동의 모양을 무대
+          위에서 듣고 보는 연주회입니다.
+        </p>
+        <p>
+          이번 공연은 시대가 다른 다섯 개의 작품을 하나의 흐름으로 이어
+          연주합니다. 반복과 변주로 커져 가는 곡, 고요하게 번지는 곡, 폭발하듯
+          퍼지는 곡이 차례로 이어지며 ‘울림’이 어떻게 다른 얼굴을 갖는지 보여
+          줍니다. 공연 전 20분, 로비에서 연주자와 함께하는 짧은 프리토크가
+          진행됩니다.
+        </p>
+      </section>
+
+      <dl class="info">
+        <div class="row">
+          <dt>venue</dt>
+          <dd>한빛 콘서트홀 (가상)</dd>
+        </div>
+        <div class="row">
+          <dt>date</dt>
+          <dd>2026. 12. 12 sat / 19:30</dd>
+        </div>
+        <div class="row">
+          <dt>host</dt>
+          <dd>한빛 앙상블 (가상)</dd>
+        </div>
+        <div class="row gap">
+          <dt>program</dt>
+          <dd>
+            <ul class="program">
+              <li><b>bach</b><span>chaconne (편곡)</span></li>
+              <li><b>debussy</b><span>clair de lune</span></li>
+              <li><b>ravel</b><span>boléro</span></li>
+              <li><b>beethoven</b><span>symphony no. 7, op. 92</span></li>
+              <li><b>pärt</b><span>spiegel im spiegel</span></li>
+            </ul>
+          </dd>
+        </div>
+        <div class="row gap">
+          <dt>tickets</dt>
+          <dd>일반 30,000 / 학생 15,000</dd>
+        </div>
+      </dl>
+
+      <p class="num" aria-label="No. 07">07</p>
+      <p class="caption">hanbit hall — 12.12.2026</p>
+    </main>
+  </body>
+</html>

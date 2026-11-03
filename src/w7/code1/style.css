@@ -4,14 +4,24 @@
 
 /* 상태 바 기본 스타일 (데스크탑) */
 .status-banner-box {
-  background-color: #2b8a3e !important;
+  background-color: #2b8a3e;
   color: #fff;
   text-align: center;
   font-weight: 700;
   transition: background-color 0.3s ease;
 
+  @media (width < 48rem) {
+    background-color: red;
+  }
+
   .status-indicator {
     font-size: 0.95rem;
+
+    & ::after {
+      @media screen(width < 48rem) {
+        content: "여기 추가된 텍스트입니다";
+      }
+    }
   }
 }
 
@@ -37,17 +47,21 @@
     list-style: none;
     font-size: 0.9rem;
   }
+}
 
-  .mobile-menu-btn {
-    display: none; /* 데스크탑에서는 숨김 */
-    background-color: #495057;
-    color: #fff;
-    border: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 0.25rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-  }
+.mobile-menu-btn {
+  display: none; /* 데스크탑에서는 숨김 */
+  background-color: #495057;
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+@media (width < 48rem) {
+  display: block;
 }
 
 /* 2-2. 프로모션 카드 (가로 배치) */
@@ -136,53 +150,43 @@
 /* =======================================================
    📱 [미디어 쿼리 구간] 화면 너비가 768px 이하일 때 분기
    ======================================================= */
-@media (max-width: 768px) {
-  /* 상태 바 변경 */
-  .status-banner-box {
-    background-color: #e03131 !important;
 
-    .status-indicator::after {
-      content: " ➔ 📱 모바일 뷰 (768px 이하) 작동 중!";
-    }
+/* 2-1. GNB: PC 메뉴 숨기고 햄버거 노출 */
+.mq-gnb {
+  .pc-menu {
+    display: none;
+  }
+  .mobile-menu-btn {
+    display: block;
+  }
+}
+
+/* 2-2. 프로모션 카드: 가로(row)를 세로(column)로 꺾고 중앙 정렬 */
+.promo-card {
+  flex-direction: column;
+  text-align: center;
+
+  .promo-img-placeholder {
+    width: 100%;
+    height: 11rem;
   }
 
-  /* 2-1. GNB: PC 메뉴 숨기고 햄버거 노출 */
-  .mq-gnb {
-    .pc-menu {
-      display: none;
-    }
-    .mobile-menu-btn {
-      display: block;
+  .promo-content {
+    .btn-primary {
+      width: 100%; /* 모바일에서는 누르기 쉽게 꽉 채움 */
     }
   }
+}
 
-  /* 2-2. 프로모션 카드: 가로(row)를 세로(column)로 꺾고 중앙 정렬 */
-  .promo-card {
-    flex-direction: column;
-    text-align: center;
+/* 2-3. 레이아웃 골조 해체 및 타이포그래피/여백 축소 */
+.mq-layout {
+  grid-template-columns: 1fr; /* 2단에서 1단으로 해체 */
+}
 
-    .promo-img-placeholder {
-      width: 100%;
-      height: 11rem;
-    }
+.mq-main {
+  padding: 1.25rem !important; /* 여백 축소 */
 
-    .promo-content {
-      .btn-primary {
-        width: 100%; /* 모바일에서는 누르기 쉽게 꽉 채움 */
-      }
-    }
-  }
-
-  /* 2-3. 레이아웃 골조 해체 및 타이포그래피/여백 축소 */
-  .mq-layout {
-    grid-template-columns: 1fr; /* 2단에서 1단으로 해체 */
-  }
-
-  .mq-main {
-    padding: 1.25rem !important; /* 여백 축소 */
-
-    .mq-hero-title {
-      font-size: 1.25rem !important; /* 타이틀 폰트 크기 축소 */
-    }
+  .mq-hero-title {
+    font-size: 1.25rem !important; /* 타이틀 폰트 크기 축소 */
   }
 }

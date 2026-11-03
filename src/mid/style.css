@@ -1,0 +1,542 @@
+/* 폰트 (HTML <head>를 수정하지 않아도, CodePen에서도 적용되도록 CSS에서 불러옴) */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap");
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+
+/* ==========================================================
+   resonance — 반응형 웹 포스터 (Müller-Brockmann 《Beethoven》 구조 리디자인)
+
+   [과제 요건 체크]
+   1. CSS Grid 골조 ........ .poster (12열 → 6열 → 4열), grid-column / grid-row 로 비대칭 배치
+   2. Flexbox ............. .program li, .metabar
+   3. Pile / Position ..... .stage 안의 도형 레이어 전부 grid-area: 1 / 1 (Pile),
+                            .caption 은 position:absolute + 세로쓰기 회전
+   4. 유동 단위 ........... fr, vw, vh, min(), max(), clamp(), ch, calc(var(--u) * n)
+   5. Media Query ......... max-width: 1100px (태블릿), max-width: 640px (모바일)
+
+   [핵심 아이디어]
+   포스터의 모든 도형은 "원의 중심 C(--cx, --cy)"와 "반지름 단위 --u" 하나로 결정된다.
+   화면이 바뀌면 이 3개 변수만 바꾸고, 도형·글자는 전부 --u 의 배수로 따라온다.
+   ========================================================== */
+
+:root {
+  --ink: #111;
+  --paper: #fff;
+  --red: #e4002b;
+  --gray: #777;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family:
+    "Inter", "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 1. 포스터 구조 (Desktop) ---------- */
+.poster {
+  /* 원의 기준 변수: u = 반지름 단위, (cx, cy) = 원의 중심 */
+  --u: max(220px, min(23.6vw, 37.8vh)); /* 가로·세로 중 작은 쪽을 따라 줄어듦 */
+  --cx: calc(var(--u) * 1.706);
+  --cy: calc(var(--u) * 1.53);
+  --pad: 5vw;
+  --gap: 1.67vw;
+
+  position: relative;
+  isolation: isolate; /* 제목의 mix-blend-mode 가 포스터 안에서만 섞이도록 */
+  overflow: hidden;
+  min-height: max(100svh, calc(var(--u) * 2.65));
+  padding-inline: var(--pad);
+  padding-bottom: 6.5vh;
+  background: var(--paper);
+
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap);
+  /* 1 슬로건·본문 | 2 제목 | 3 여백 | 4 정보표 | 5 나머지 */
+  grid-template-rows:
+    calc(var(--cy) - 0.36 * var(--u))
+    auto
+    calc(var(--u) * 0.08)
+    auto
+    1fr;
+}
+
+/* ---------- 2. 도형 레이어 ---------- */
+.stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: grid;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* 모든 레이어가 같은 칸(1/1)에 겹쳐 쌓인다 = Pile */
+.stage > * {
+  grid-area: 1 / 1;
+}
+
+/* .ring  : 반지름 r1~r2 사이의 "고리"만 보이게 하는 마스크
+   .sweep : 중심에서 각도 --s 부터 --l 만큼만 칠하는 부채꼴 (conic-gradient)
+   → 고리 ∩ 부채꼴 = 끝이 직선으로 잘린 호 조각 */
+.ring {
+  position: relative;
+  -webkit-mask-image: radial-gradient(
+    circle at var(--cx) var(--cy),
+    transparent var(--r1),
+    #000 var(--r1) var(--r2),
+    transparent var(--r2)
+  );
+  mask-image: radial-gradient(
+    circle at var(--cx) var(--cy),
+    transparent var(--r1),
+    #000 var(--r1) var(--r2),
+    transparent var(--r2)
+  );
+}
+
+.sweep {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    from calc(var(--s) * 1deg) at var(--cx) var(--cy),
+    var(--c, var(--ink)) 0 calc(var(--l) * 1deg),
+    transparent 0
+  );
+}
+
+/* 검은 면 A : 반지름 1.02u 바깥, 45° ~ 190° (conic 기준: 위가 0°, 시계방향) */
+.field-a {
+  --r1: calc(var(--u) * 1.02);
+  --r2: 200vmax;
+}
+.field-a .sweep {
+  --s: 45;
+  --l: 145;
+}
+
+/* 검은 면 B : 흰 '만(灣)' 위쪽. 반지름 1.4u 바깥, -11° ~ 45° */
+.field-b {
+  --r1: calc(var(--u) * 1.4);
+  --r2: 200vmax;
+}
+.field-b .sweep {
+  --s: -11;
+  --l: 56;
+}
+
+/* 호 조각 5개 : 두께와 각도를 다르게 */
+.a1 {
+  --r1: calc(var(--u) * 0.8);
+  --r2: calc(var(--u) * 0.99);
+}
+.a1 .sweep {
+  --s: 0;
+  --l: 90;
+}
+.a2 {
+  --r1: calc(var(--u) * 0.62);
+  --r2: calc(var(--u) * 0.73);
+}
+.a2 .sweep {
+  --s: 12;
+  --l: 103;
+}
+.a3 {
+  --r1: calc(var(--u) * 0.5);
+  --r2: calc(var(--u) * 0.56);
+}
+.a3 .sweep {
+  --s: 42;
+  --l: 44;
+}
+.a4 {
+  --r1: calc(var(--u) * 0.4);
+  --r2: calc(var(--u) * 0.45);
+}
+.a4 .sweep {
+  --s: 76;
+  --l: 44;
+}
+.a5 {
+  --r1: calc(var(--u) * 0.3);
+  --r2: calc(var(--u) * 0.34);
+}
+.a5 .sweep {
+  --s: 26;
+  --l: 76;
+}
+
+/* 흰 머리카락선 2개 : 검은 면 위로만 지나간다 */
+.hair {
+  --c: var(--paper);
+}
+.h1 {
+  --r1: calc(var(--u) * 1.2);
+  --r2: calc(var(--u) * 1.2 + 2px);
+}
+.h2 {
+  --r1: calc(var(--u) * 1.4);
+  --r2: calc(var(--u) * 1.4 + 2px);
+}
+.hair .sweep {
+  --s: 45;
+  --l: 145;
+}
+
+/* 소리가 시작되는 점 : 제목(blend) 위에 보이도록 .stage 밖, 가장 위 레이어 */
+.dot {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  --d: max(4px, calc(var(--u) * 0.022));
+  background: radial-gradient(
+    circle at var(--cx) var(--cy),
+    var(--red) var(--d),
+    transparent calc(var(--d) + 0.5px)
+  );
+}
+
+/* ---------- 3. 글자 요소 (Desktop 배치) ---------- */
+.slogan,
+.prose,
+.title,
+.info,
+.num {
+  position: relative;
+  z-index: 2; /* 도형 레이어 위 */
+}
+
+.metabar {
+  display: none;
+}
+
+.slogan {
+  grid-column: 1 / 4;
+  grid-row: 1;
+  align-self: start;
+  padding-top: clamp(28px, 7.5vh, 84px);
+}
+.slogan strong {
+  display: block;
+  font-size: clamp(18px, 1.8vw, 28px);
+  font-weight: 500;
+  line-height: 1.3;
+}
+.slogan em {
+  display: block;
+  margin-top: 0.6em;
+  font-size: clamp(11px, 1vw, 15px);
+  color: var(--gray);
+}
+
+/* 메인 타이틀 : 흰 바탕에선 검정, 검은 면 위에선 흰색으로 자동 반전 */
+.title {
+  grid-column: 1 / 10;
+  grid-row: 2;
+  font-size: calc(var(--u) * 0.59);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  margin-inline-start: -0.055em;
+  white-space: nowrap;
+  color: #fff;
+  mix-blend-mode: difference;
+}
+@supports not (mix-blend-mode: difference) {
+  .title {
+    color: var(--ink);
+  }
+}
+
+/* 본문 : 검은 면 위에 흰 글씨 */
+.prose {
+  grid-column: 10 / 13;
+  grid-row: 1 / 3;
+  align-self: start;
+  padding-top: clamp(28px, 7.5vh, 84px);
+  max-inline-size: 38ch; /* 읽기 좋은 줄 길이 */
+  font-size: clamp(12px, 0.9vw, 15px);
+  line-height: 1.6;
+  color: #fff;
+  text-wrap: pretty;
+  word-break: keep-all; /* 한글 단어 중간에서 줄바꿈되지 않게 */
+}
+.prose p + p {
+  margin-top: 1.4em;
+}
+
+/* 정보표 : <dl> 이 포스터의 열 트랙을 그대로 물려받는다(subgrid) */
+.info {
+  grid-column: 1 / 7;
+  grid-row: 4;
+  align-self: start;
+  display: grid;
+  grid-template-columns: repeat(
+    6,
+    minmax(0, 1fr)
+  ); /* subgrid 미지원 브라우저용 */
+  grid-template-columns: subgrid;
+  column-gap: var(--gap);
+  font-size: clamp(11px, 0.9vw, 14px);
+  line-height: 1.55;
+}
+.row {
+  display: contents;
+}
+.row.gap > * {
+  margin-top: 0.8em;
+}
+.info dt {
+  grid-column: 1 / 3;
+  text-align: end;
+  color: var(--gray);
+}
+.info dd {
+  grid-column: 3 / 7;
+  font-weight: 500;
+}
+
+/* 프로그램 목록 : Flexbox (작곡가 | 곡명) */
+.program {
+  list-style: none;
+  padding: 0;
+}
+.program li {
+  display: flex;
+  gap: 0.8em;
+}
+.program b {
+  flex: 0 0 6.3em;
+  font-weight: 700;
+}
+.program span {
+  font-weight: 400;
+}
+
+/* 거대한 번호 */
+.num {
+  grid-column: 10 / 13;
+  grid-row: 4 / 6;
+  align-self: end;
+  justify-self: end;
+  font-size: calc(var(--u) * 0.44);
+  font-weight: 500;
+  line-height: 0.8;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+/* 세로 캡션 : position + 세로쓰기로 회전 */
+.caption {
+  position: absolute;
+  z-index: 2;
+  right: calc(var(--pad) * 0.3);
+  bottom: 6.5vh;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: #fff;
+}
+
+/* ==========================================================
+   Breakpoint 1 — Tablet (≤ 1100px) : 12열 → 6열
+   원의 중심이 아래로 내려오고, 본문은 위쪽 검은 면으로 이동
+   ========================================================== */
+@media (max-width: 1100px) {
+  .poster {
+    --u: 37.8vw;
+    --cx: calc(var(--u) * 0.655);
+    --cy: calc(var(--u) * 2.483);
+    --pad: 5.2vw;
+    --gap: 2.6vw;
+
+    min-height: max(
+      100svh,
+      calc(var(--u) * 3.586)
+    ); /* 창이 더 길면 검은 면이 아래로 이어짐 */
+    padding-bottom: 4vw;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    /* 1 본문 | 2 슬로건 | 3 여백 | 4 제목 | 5 여백 | 6 정보표 | 7 나머지 */
+    grid-template-rows:
+      calc(var(--cy) - 1.255 * var(--u))
+      calc(var(--u) * 0.33)
+      calc(var(--u) * 0.36)
+      auto
+      calc(var(--u) * 0.39)
+      auto
+      1fr;
+  }
+
+  .slogan {
+    grid-column: 1 / 4;
+    grid-row: 2;
+    padding-top: 0;
+  }
+  .slogan strong {
+    font-size: clamp(18px, 2.9vw, 24px);
+  }
+  .slogan em {
+    font-size: clamp(11px, 1.6vw, 14px);
+  }
+
+  .prose {
+    grid-column: 4 / 7;
+    grid-row: 1 / 3;
+    padding-top: 9.4vw;
+    padding-inline-start: calc(var(--u) * 0.055);
+    font-size: clamp(12px, 1.7vw, 14px);
+  }
+
+  .title {
+    grid-column: 1 / 7;
+    grid-row: 4;
+    font-size: calc(var(--u) * 0.407);
+  }
+
+  .info {
+    grid-column: 1 / 7;
+    grid-row: 6;
+    font-size: clamp(11px, 1.7vw, 14px);
+  }
+  .info dt {
+    grid-column: 1 / 2;
+  }
+  .info dd {
+    grid-column: 2 / 7;
+  }
+
+  .num {
+    grid-column: 4 / 7;
+    grid-row: 6 / 8;
+    font-size: calc(var(--u) * 0.448);
+  }
+
+  .caption {
+    bottom: 4vw;
+    right: 1.4vw;
+  }
+}
+
+/* ==========================================================
+   Breakpoint 2 — Mobile (≤ 640px) : 6열 → 4열, 한 줄 흐름(Stack)
+   도형은 위쪽 영역에 가두고, 본문은 아래 검은 블록으로
+   ========================================================== */
+@media (max-width: 640px) {
+  .poster {
+    --u: 56vw;
+    --cx: calc(var(--u) * 0.333);
+    --cy: calc(var(--u) * 1.81);
+    --pad: 5.33vw;
+    --gap: 4.27vw;
+
+    min-height: 0;
+    padding-bottom: 0;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    /* 1 도형 영역 | 2 제목 | 3 슬로건 | 4 정보표 | 5 본문 블록 */
+    grid-template-rows:
+      calc(var(--cy) + 0.41 * var(--u))
+      auto auto auto auto;
+  }
+
+  /* 도형은 위쪽 영역에만 */
+  .stage {
+    bottom: auto;
+    height: calc(var(--u) * 2.857);
+  }
+
+  /* 맨 위 메타 바 : Flexbox */
+  .metabar {
+    position: relative;
+    z-index: 2;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    align-self: start;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 7.5vw;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: #fff;
+  }
+
+  .title {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: calc(var(--u) * 0.533);
+    line-height: 0.946;
+  }
+  .title span {
+    display: block;
+  } /* reso / nance 두 줄로 쪼개짐 */
+
+  .slogan {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin-top: calc(var(--u) * 0.21);
+    padding-top: 0;
+  }
+  .slogan strong {
+    font-size: clamp(18px, 5.3vw, 24px);
+  }
+  .slogan em {
+    font-size: 12px;
+  }
+
+  .info {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    margin-top: calc(var(--u) * 0.3);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: subgrid;
+    font-size: clamp(11px, 3.2vw, 14px);
+  }
+  .info dt {
+    grid-column: 1 / 2;
+  }
+  .info dd {
+    grid-column: 2 / 5;
+  }
+  .program li {
+    gap: 0.6em;
+  }
+  .program b {
+    flex-basis: 5.8em;
+  }
+
+  /* 본문 : 화면 폭 전체를 쓰는 검은 블록 (padding 으로 줄어든 폭을 되찾음) */
+  .prose {
+    grid-column: 1 / -1;
+    grid-row: 5;
+    max-inline-size: none;
+    margin: calc(var(--u) * 0.2) calc(var(--pad) * -1) 0;
+    padding: calc(var(--u) * 0.2) var(--pad) calc(var(--u) * 0.6);
+    background: var(--ink);
+    font-size: clamp(12.5px, 3.5vw, 15px);
+    line-height: 1.55;
+  }
+
+  /* 번호는 본문 블록과 같은 칸에 겹쳐(Pile) 오른쪽 아래에 */
+  .num {
+    grid-column: 1 / -1;
+    grid-row: 5;
+    z-index: 3;
+    font-size: calc(var(--u) * 0.4);
+    margin-bottom: 4vw;
+  }
+
+  .caption {
+    display: none;
+  }
+}
